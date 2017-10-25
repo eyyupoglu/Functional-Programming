@@ -1,3 +1,7 @@
+//Mehmet Eyyupoglu s17448
+//Gleb Lematsko s162105
+//Abdelali Khatibi s164561
+
 type CourseNo = int
 type Title = string
 type ECTS = int
@@ -36,6 +40,8 @@ let rec sumECTS cs cb = match (Map.toList cb) with
                         | (no,(_,ects))::tail -> if Set.contains no cs 
                                                   then ects + sumECTS (Set.remove no cs) (Map.ofList tail) 
                                                   else sumECTS (Set.remove no cs) (Map.ofList tail);;
+
+                                       
 let test4a1 = Set.ofList [12;14;17]
 let test4a2 = Map.ofList [(12,("cheese",20));(13,("herring",5));(14,("soft drink",5));(17,("herring",50))]
 let test4a3 = Set.ofList [11;18;19]
@@ -68,7 +74,7 @@ In the first condition there could be another function which checks all 3 elemen
 feasible to write liket this.  
 In the second condition to check if any of them have some element in common, I simply united the whole sets and counted
 their size and checked if this size is equal to the sum of the size of the sets individually.
-In the third condition I again united the whole sets and used forall method to check predicate*)
+In the third condition I again united the whole sets but this time I used forall method to check predicate*)
 let isValid
   ((man, opt), (man2, opt2),
     (man3, opt3),es) cb =  isValidCourseGroup (man, opt) cb && isValidCourseGroup (man2, opt2) cb && isValidCourseGroup (man3, opt3) cb 
@@ -79,8 +85,46 @@ let isValid
                             && Set.forall es (Set.union (Set.union (Set.union man opt) (Set.union man2 opt2)) 
                                         (Set.union man3 opt3));;
 
-
+let man = Set.ofList [1;2;3]
+let opt = Set.ofList [4;5;6]
+let man2 = Set.ofList [7;8;9]
+let opt2 = Set.ofList [10;11;12]
+let man3 = Set.ofList [13;14;15]
+let opt3 = Set.ofList [16;17;18]
+//Indicating that electives cannot be say, Phd courses. "smaller than 50."
+let es courseno = courseno < 50 
+let opt3_2 = Set.empty
+let coursebase =  Map.ofList [(1,("math1",20));(2,("math2",5));(3,("physics",5));(4,("chem1",20));
+                              (5,("physics2",5));(6,("chem2",20));(7,("math3",20));(8,("math4",5));
+                              (9,("physics3",5));(10,("chem3",20));(11,("math5",20));(12,("math6",5));
+                              (13,("physics4",5));(14,("chem4",20));(15,("math7",20));(16,("math8",5));
+                              (17,("physics5",5));(18,("chem5",20));(19,("math9",20));(20,("math10",5))]
+// Test6 will be like this because opt3 set is not empty while it is supposed to be. It is declared as empty set in cases where 
+//mandatory courses add up to 45. So here it adds up to 45 ects so optional courses are not 0. Then this will violate first condition
+//of is valid function.                                                           
+let test6_1 = isValid ((man,opt),(man2,opt2),(man3,opt3),es) coursebase  = false
+//This time it will be true because note that third element of the input tuple has changed to (man3,opt3_2). This time it is 
+//assigned to empty set. So it is fine.
+let test6_2 = isValid ((man,opt),(man2,opt2),(man3,opt3_2),es) coursebase  = true;;
 
 
 //----------------------------------------------------------------------------------------------------------------------------                                                          
-let checkPlan cs (k1,k2,k3,_) cb = sumECTS cs cb = 180 && sumECTS k1 cb= 45 && sumECTS k2 cb = 45 && sumECTS k3 cb =45 ;;                                                                  
+let checkPlan cs ((man,opt),(man2,opt2),(man3,opt3),_) cb = sumECTS cs cb = 180 && sumECTS (Set.union man opt) cb= 45 &&
+                                                                             sumECTS (Set.union man2 opt2) cb= 45 && 
+                                                                              sumECTS (Set.union man3 opt3) cb= 45 ;;  
+
+let cs = (Set.ofList [1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20;21;22;23])
+let coursebase2 =  Map.ofList [(1,("math1",10));(2,("math2",5));(3,("physics",5));(4,("chem1",10));
+                              (5,("physics2",5));(6,("chem2",10));(7,("math3",5));(8,("math4",5));
+                              (9,("physics3",5));(10,("chem3",10));(11,("math5",5));(12,("math6",15));
+                              (13,("physics4",5));(14,("chem4",10));(15,("math7",5));(16,("math8",5));
+                              (17,("physics5",5));(18,("chem5",15));(19,("math9",20));(20,("math10",5));
+                              (21,("math11",10));(22,("hist",5));(23,("asd",5));(20,("qwe",5))]
+
+//I created another coursebase in order to test this function. So this time coursebase2 is used.
+//((man,opt),(man2,opt2),(man3,opt3),es) these values are the same values used in "inValid" function tests.
+let test7 = checkPlan cs ((man,opt),(man2,opt2),(man3,opt3),es) coursebase2 = true      ;;  
+// Lets say we changed our cs and subtracted the course which had 23 key value in the map. Then we expect false
+//due to total wont be equal to 180 ects. 
+let test7_2 = checkPlan (Set.remove 23 cs) ((man,opt),(man2,opt2),(man3,opt3),es) coursebase2   = false   ;;  
+                                                      
